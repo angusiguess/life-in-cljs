@@ -13,12 +13,25 @@
 
 (defonce sim-width 200)
 
-(def init-state (fm/init 100 100 [[1 1] [1 2] [1 3]]))
+(defn random-cells [width height n]
+  (repeatedly n (fn [] [(rand-int width) (rand-int height)])))
+
 
 ;; Om Components
 
 (defn first-life [data owner]
-  (reify om/IRender))
+  (reify om/IRender
+    (render [_]
+      (dom/div #js {:id "first-sim"}
+               (dom/canvas #js {:id "first-canvas"
+                                :height sim-height
+                                :width sim-width
+                                :ref "first-canvas-ref"})))
+    om/IInitState
+    (init-state [_]
+      (fm/init 100 100 (random-cells 100 100 50)))))
+
+(om/root first-life {} {:target (. js/document (getElementById "app"))})
 
 ;; define your app data so that it doesn't get over-written on reload
 ;; (defonce app-data (atom {}))
