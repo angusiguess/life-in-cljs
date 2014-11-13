@@ -19,6 +19,7 @@
   
   :cljsbuild {
     :builds [{:id "dev"
+              :libs [""]
               :source-paths ["src"]
               :compiler {:output-to "resources/public/js/compiled/life_in_cljs.js"
                          :output-dir "resources/public/js/compiled/out"
@@ -26,6 +27,7 @@
                          :source-map true}}
              {:id "min"
               :source-paths ["src"]
+              :libs [""]
               :compiler {:output-to "www/life_in_cljs.min.js"
                          :optimizations :advanced
                          :pretty-print false
