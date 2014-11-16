@@ -45,7 +45,7 @@
     (reduce (fn [acc loc]
               (let [neighbors (neighbor-count state loc)]
                 (cond (and (false? (get-cell state loc))
-                           (= 3 (neighbors state loc)))
+                           (= 3 neighbors))
                       (toggle-cell acc loc)
                       (and (true? (get-cell state loc))
                            (or (< neighbors 2)
