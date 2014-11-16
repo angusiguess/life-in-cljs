@@ -1,8 +1,8 @@
-(ns life-in-cljs.components.full-matrix
+(ns life-in-cljs.components.only-living
   (:require [cljs.core.async :as a]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [life-in-cljs.full-matrix :as fm])
+            [life-in-cljs.only-living :as ol])
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]]))
 
 (defonce sim-height 200)
@@ -15,18 +15,13 @@
 ;; Rendering functions
 
 (defn render-cells [context state]
-  (let [height (count state)
-        width (-> state first count)
-        coords (for [x (range 0 width)
-                     y (range 0 height)] [x y])]
     (set! (.-fillStyle context) "#FFFFFF")
     (.fillRect context 0 0 sim-height sim-width)
     (set! (.-fillStyle context) "#000000")
-    (doseq [[x y :as coord] coords] 
-      (when (fm/get-cell state coord)
-        (.fillRect context (* 2 x) (* 2 y) 2 2)))))
+    (doseq [[x y] state] 
+      (.fillRect context (* 2 x) (* 2 y) 2 2)))
 
-(defn update-fm [owner dom-node-ref state]
+(defn update [owner dom-node-ref state]
   (let [canvas (om/get-node owner dom-node-ref)
         context (.getContext canvas "2d")]
     (render-cells context state)))
@@ -40,12 +35,12 @@
              (let [[v ch] (a/alts! [duration frame])]
                (if (= ch duration)
                  (om/set-state! owner [:benchmark] (str "Frames created:" count " FPS:" (/ count 60)))
-                 (do (om/update-state! owner [:state] fm/step)
+                 (do (om/update-state! owner [:state] ol/step)
                      (recur (a/timeout 10) (inc count))))))))
 
 (defn step [owner]
   (.profile js/console "step")
-  (om/update-state! owner [:state] fm/step)
+  (om/update-state! owner [:state] ol/step)
   (.profileEnd js/console))
 
 (defn handle-event [owner [type value]]
@@ -71,11 +66,11 @@
 (defn component [data owner]
   (reify om/IRender
     (render [_]
-      (dom/div #js {:id "first-sim"}
-               (dom/canvas #js {:id "first-canvas"
+      (dom/div #js {:id "second-sim"}
+               (dom/canvas #js {:id "second-canvas"
                                 :height sim-height
                                 :width sim-width
-                                :ref "first-canvas-ref"})
+                                :ref "second-canvas-ref"})
                (make-benchmark-button (om/get-state owner [:comm]) owner)
                (make-step-button (om/get-state owner [:comm]) owner)
                (dom/h4 nil (om/get-state owner [:benchmark]))))
@@ -88,11 +83,11 @@
                 (handle-event owner event))))))
     om/IDidMount
     (did-mount [_]
-      (update-fm owner "first-canvas-ref" (om/get-state owner [:state])))
+      (update owner "second-canvas-ref" (om/get-state owner [:state])))
     om/IDidUpdate
     (did-update [_ _ _]
-      (update-fm owner "first-canvas-ref" (om/get-state owner [:state])))
+      (update owner "second-canvas-ref" (om/get-state owner [:state])))
     om/IInitState
     (init-state [_]
-      {:state (fm/init 100 100 (random-cells 100 100 5000))
+      {:state (set (random-cells 100 100 5000))
        :benchmark "Click benchmark"})))
